@@ -7,6 +7,8 @@ class AppViewModel: ObservableObject {
     let auth = Auth.auth()
     
     @Published var signedIn = false
+    @Published var events = [Event]()
+    @Published var createEventIsShowing = false
     
     var isSignedIn: Bool {
         return auth.currentUser != nil
@@ -58,49 +60,38 @@ struct ContentView: View {
     var body: some View {
         NavigationView {
             if viewModel.signedIn {
-                VStack {
+                
+                ZStack {
                     
-                    
-                    
-                    //First empty
-                    
-
-                    Text("Go on create an epic event!")
-                        .font(.headline)
-                    
-                    if selectedImage != nil {
-                        Image(uiImage: selectedImage!)
-                            .resizable()
-                            .frame(width: 200, height: 200)
-                    }
-                    
-                    
-                    
-//                    Button {
-//                        // show image picker
-//                        viewModel.signOut()
-//                    } label: {
-//                        Text("Select a Photo")
-//                    }
-                    
-                    if selectedImage != nil {
-                        Button {
-                            // upload image
-                        } label: {
-                            Text("Upload photo")
+                    VStack {
+                        List(viewModel.events) { event in
+                            
+                            NavigationLink(event.name, destination: PhotoEventView(event: event))
                         }
                     }
-
-                            
+                    //First empty
+//                    if !viewModel.events.isEmpty {
+//                        List(){
+//                            ForEach(viewModel.events) { events in
+//                                NavigationLink(destination: PhotoEventView(), isActive: true)
+//                                Text(events.name)
+//                            }
+//                            .onDelete(perform: deleteEvent)
+//                        }
+//                    }
+                    
+                    
                     VStack {
+                        
+                        
+                        
+                        
                         Spacer()
                         HStack {
                             Spacer()
                             Button(action: {
-                                showingPopover = true
-//                                isPickerShowing = true
-
-                                
+                                //Swap to EventCreatorView
+                                viewModel.createEventIsShowing = true
                                 
                             }, label: {
                                 Image(systemName: "plus")
@@ -112,35 +103,15 @@ struct ContentView: View {
                             })
                             .padding()
                             .shadow(radius: 2)
+                          
                         }
-                    }
-                    
-                    .popover(isPresented: $showingPopover) {
-                        VStack(alignment: .leading) {
-                            Text("Enter Name of Event:")
-                            TextField("Event Name", text: $eventName)
-                                .textFieldStyle(RoundedBorderTextFieldStyle())
-                                .disableAutocorrection(true)
-                                .autocapitalization(.none)
-                        }
-                        .padding()
                         
-                        Button(action: {
-                            
-                        }, label: {
-                            Text("Add pictures")
-                                .foregroundColor(Color.white)
-                                .frame(width: 200, height: 50)
-                                .cornerRadius(8)
-                                .background(Color.blue)
-                        })
+                        NavigationLink(destination: EventCreatorView(), isActive: $viewModel.createEventIsShowing) {
+                            EmptyView()
+                        }
                     }
-                    
                 }
-                .sheet(isPresented: $isPickerShowing, onDismiss: nil) {
-                    //Image picker
-                    ImagePicker(selectedImage: $selectedImage, isPickerShowing: $isPickerShowing)
-                }
+                
             }
             
             
@@ -153,11 +124,10 @@ struct ContentView: View {
             viewModel.signedIn = viewModel.isSignedIn
         }
     }
-}
-
-struct Event: Identifiable {
-    let name: String
-    let id = UUID()
+    
+    func deleteEvent(at offset: IndexSet) {
+        viewModel.events.remove(atOffsets: offset)
+    }
 }
 
 
@@ -251,3 +221,4 @@ struct SignUpView: View {
         .navigationTitle("Create Account")
     }
 }
+
